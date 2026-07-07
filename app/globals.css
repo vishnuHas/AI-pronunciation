@@ -1,0 +1,360 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ===== CSS Custom Properties ===== */
+:root {
+  --font-inter: 'Inter', system-ui, sans-serif;
+  --gradient-brand: linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #8b5cf6 100%);
+  --gradient-surface: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+/* ===== Base Styles ===== */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #f8fafc;
+  color: #1e293b;
+  font-family: var(--font-inter);
+  min-height: 100vh;
+}
+
+/* ===== Scrollbar Styling ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ===== Glassmorphism Components ===== */
+.glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
+}
+
+.glass-elevated {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(203, 213, 225, 0.6);
+  box-shadow: 0 10px 30px -4px rgba(15, 23, 42, 0.08);
+}
+
+/* ===== Gradient Text ===== */
+.gradient-text {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ===== Drop Zone ===== */
+.dropzone-active {
+  border-color: #0ea5e9 !important;
+  background: rgba(14, 165, 233, 0.04) !important;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1), inset 0 0 20px rgba(14, 165, 233, 0.02);
+}
+
+/* ===== Score Ring ===== */
+.score-ring-bg {
+  stroke: #f1f5f9;
+}
+
+.score-ring-fill {
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+/* ===== Word Highlighting ===== */
+.word-token {
+  display: inline-block;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin: 1px 2px;
+  transition: all 0.2s ease;
+  cursor: default;
+  color: #334155;
+  position: relative;
+}
+
+/* Base flagged state (confidence-based fallback) */
+.word-token.flagged-severe {
+  background: rgba(239, 68, 68, 0.07);
+  border-bottom: 2.5px solid #ef4444;
+  color: #991b1b;
+  cursor: pointer;
+}
+.word-token.flagged-moderate {
+  background: rgba(251, 146, 60, 0.07);
+  border-bottom: 2.5px solid #fb923c;
+  color: #c2410c;
+  cursor: pointer;
+}
+.word-token.flagged-mild {
+  background: rgba(250, 204, 21, 0.07);
+  border-bottom: 2.5px solid #eab308;
+  color: #854d0e;
+  cursor: pointer;
+}
+
+/* ── Error-type specific styles ── */
+
+/* Vowel error — Rose/Pink */
+.error-vowel {
+  background: rgba(244, 63, 94, 0.07) !important;
+  border-bottom: 2.5px solid #f43f5e !important;
+  color: #9f1239 !important;
+  cursor: pointer;
+}
+.error-vowel::after {
+  content: "V";
+  position: absolute;
+  top: -9px;
+  right: -1px;
+  font-size: 7px;
+  font-weight: 800;
+  color: #f43f5e;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+/* Consonant error — Orange */
+.error-consonant {
+  background: rgba(249, 115, 22, 0.07) !important;
+  border-bottom: 2.5px solid #f97316 !important;
+  color: #9a3412 !important;
+  cursor: pointer;
+}
+.error-consonant::after {
+  content: "C";
+  position: absolute;
+  top: -9px;
+  right: -1px;
+  font-size: 7px;
+  font-weight: 800;
+  color: #f97316;
+  line-height: 1;
+}
+
+/* Stress error — Amber */
+.error-stress {
+  background: rgba(245, 158, 11, 0.07) !important;
+  border-bottom: 2.5px dashed #f59e0b !important;
+  color: #92400e !important;
+  cursor: pointer;
+}
+.error-stress::after {
+  content: "S";
+  position: absolute;
+  top: -9px;
+  right: -1px;
+  font-size: 7px;
+  font-weight: 800;
+  color: #f59e0b;
+  line-height: 1;
+}
+
+/* Omission error — Purple */
+.error-omission {
+  background: rgba(168, 85, 247, 0.07) !important;
+  border-bottom: 2.5px solid #a855f7 !important;
+  color: #6b21a8 !important;
+  cursor: pointer;
+}
+.error-omission::after {
+  content: "O";
+  position: absolute;
+  top: -9px;
+  right: -1px;
+  font-size: 7px;
+  font-weight: 800;
+  color: #a855f7;
+  line-height: 1;
+}
+
+/* Insertion error — Sky Blue */
+.error-insertion {
+  background: rgba(14, 165, 233, 0.07) !important;
+  border-bottom: 2.5px solid #0ea5e9 !important;
+  color: #075985 !important;
+  cursor: pointer;
+}
+.error-insertion::after {
+  content: "I";
+  position: absolute;
+  top: -9px;
+  right: -1px;
+  font-size: 7px;
+  font-weight: 800;
+  color: #0ea5e9;
+  line-height: 1;
+}
+
+/* Unclear error — Slate */
+.error-unclear {
+  background: rgba(100, 116, 139, 0.07) !important;
+  border-bottom: 2.5px dotted #64748b !important;
+  color: #334155 !important;
+  cursor: pointer;
+}
+.error-unclear::after {
+  content: "?";
+  position: absolute;
+  top: -9px;
+  right: -1px;
+  font-size: 7px;
+  font-weight: 800;
+  color: #64748b;
+  line-height: 1;
+}
+
+/* Hover lift for all error types */
+.word-token.flagged-severe:hover,
+.word-token.flagged-moderate:hover,
+.word-token.flagged-mild:hover,
+.error-vowel:hover,
+.error-consonant:hover,
+.error-stress:hover,
+.error-omission:hover,
+.error-insertion:hover,
+.error-unclear:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+/* ===== Tooltip ===== */
+.tooltip-content {
+  animation: tooltipIn 0.15s ease-out;
+}
+
+@keyframes tooltipIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ===== Progress Steps ===== */
+.progress-step {
+  transition: all 0.4s ease;
+}
+
+.progress-step.active {
+  color: #0284c7;
+}
+
+.progress-step.completed {
+  color: #16a34a;
+}
+
+/* ===== Shimmer Loading ===== */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 0) 0%,
+    rgba(15, 23, 42, 0.02) 50%,
+    rgba(15, 23, 42, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* ===== Button Styles ===== */
+.btn-primary {
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  color: white;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.btn-primary:hover::before {
+  opacity: 1;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(14, 165, 233, 0.25);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ===== Recording Pulse ===== */
+@keyframes recordPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+}
+
+.record-pulse {
+  animation: recordPulse 1.2s ease-in-out infinite;
+}
+
+/* ===== Reveal Animations ===== */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Staggered children ===== */
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 320ms; }
