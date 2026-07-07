@@ -17,6 +17,7 @@ export default function Home() {
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
   const [audioName, setAudioName] = useState<string>("");
   const [consentChecked, setConsentChecked] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false); // DPDP §9 — age gate
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [inputError, setInputError] = useState<string>("");
@@ -45,7 +46,11 @@ export default function Home() {
   }, []);
 
   const handleSubmit = async () => {
-    if (!audioFile || !consentChecked) return;
+    if (!audioFile || !consentChecked || !ageConfirmed) return;
+    // Log consent timestamp for DPDP auditability (ephemeral — sessionStorage only)
+    try {
+      sessionStorage.setItem("dpdp_consent_ts", new Date().toISOString());
+    } catch { /* ignore if sessionStorage unavailable (SSR / privacy mode) */ }
 
     setAppState("analyzing");
     setErrorMessage("");
@@ -80,9 +85,11 @@ export default function Home() {
     setAudioDuration(null);
     setAudioName("");
     setConsentChecked(false);
+    setAgeConfirmed(false);
     setResult(null);
     setErrorMessage("");
     setInputError("");
+    try { sessionStorage.removeItem("dpdp_consent_ts"); } catch { /* ignore */ }
   };
 
   return (
@@ -149,7 +156,9 @@ export default function Home() {
                   {(["upload", "record"] as InputMode[]).map((mode) => (
                     <button
                       key={mode}
+                      disabled={mode === "record"}
                       onClick={() => {
+                        if (mode === "record") return;
                         setInputMode(mode);
                         setAudioFile(null);
                         setAudioDuration(null);
@@ -157,7 +166,9 @@ export default function Home() {
                         setInputError("");
                       }}
                       className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        inputMode === mode
+                        mode === "record"
+                          ? "opacity-50 cursor-not-allowed text-slate-400"
+                          : inputMode === mode
                           ? "bg-white text-slate-800 shadow-sm"
                           : "text-slate-500 hover:text-slate-800"
                       }`}
@@ -171,11 +182,10 @@ export default function Home() {
                         </span>
                       ) : (
                         <span className="flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8.25 4.5a3.75 3.75 0 1 1 7.5 0v8.25a3.75 3.75 0 1 1-7.5 0V4.5Z" />
-                            <path d="M6 10.5a.75.75 0 0 1 .75.75v1.5a5.25 5.25 0 1 0 10.5 0v-1.5a.75.75 0 0 1 1.5 0v1.5a6.751 6.751 0 0 1-6 6.709v2.291h3a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3v-2.291a6.751 6.751 0 0 1-6-6.709v-1.5A.75.75 0 0 1 6 10.5Z" />
+                          <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                           </svg>
-                          Record Live
+                          Record Live (Locked)
                         </span>
                       )}
                     </button>
@@ -209,67 +219,110 @@ export default function Home() {
 
 
 
-                {/* Consent checkbox */}
-                <label className="flex items-start gap-3 cursor-pointer group" htmlFor="consent-checkbox">
-                  <div className="relative mt-0.5 flex-shrink-0">
-                    <input
-                      id="consent-checkbox"
-                      type="checkbox"
-                      checked={consentChecked}
-                      onChange={(e) => setConsentChecked(e.target.checked)}
-                      className="sr-only"
-                    />
-                    <div className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center ${
-                      consentChecked
-                        ? "bg-sky-500 border-sky-500"
-                        : "bg-transparent border-slate-300 group-hover:border-slate-400"
-                    }`}>
-                      {consentChecked && (
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                        </svg>
-                      )}
-                    </div>
-                  </div>
-                  <span className="text-slate-500 text-sm leading-relaxed">
-                    I consent to my voice recording being processed for pronunciation analysis.
-                    This audio is <strong className="text-slate-700">not stored</strong> and is
-                    deleted immediately after processing.
-                  </span>
-                </label>
+                {/* DPDP Compliance Block */}
+                <div className="space-y-3">
 
-                {/* Privacy Notice */}
-                <div className="p-4 bg-slate-50/50 border border-slate-200 rounded-xl">
-                  <div className="flex gap-2.5">
-                    <svg className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                    </svg>
-                    <div>
-                      <p className="text-slate-700 text-xs font-semibold mb-1">Privacy Notice</p>
-                      <p className="text-slate-500 text-xs leading-relaxed">
-                        Your audio recording is collected solely for pronunciation scoring. It is
-                        processed in-memory and never stored on our servers or any database.
-                        Audio is sent to secure cloud transcription services for
-                        speech transcription and flagged words (text only) to our AI feedback engines
-                        for pronunciation coaching tips — both secure processors whose servers may be located
-                        outside India.
-                      </p>
+                  {/* Consent checkbox — DPDP §7 */}
+                  <label className="flex items-start gap-3 cursor-pointer group" htmlFor="consent-checkbox">
+                    <div className="relative mt-0.5 flex-shrink-0">
+                      <input
+                        id="consent-checkbox"
+                        type="checkbox"
+                        checked={consentChecked}
+                        onChange={(e) => setConsentChecked(e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center ${
+                        consentChecked
+                          ? "bg-sky-500 border-sky-500"
+                          : "bg-transparent border-slate-300 group-hover:border-slate-400"
+                      }`}>
+                        {consentChecked && (
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-slate-500 text-sm leading-relaxed">
+                      I consent to my voice recording being processed for pronunciation analysis.
+                      This audio is <strong className="text-slate-700">not stored</strong> and is
+                      deleted immediately after processing. I can withdraw this consent at any time
+                      by clicking &ldquo;Analyze Again&rdquo; to reset.
+                    </span>
+                  </label>
+
+                  {/* Age gate — DPDP §9 */}
+                  <label className="flex items-start gap-3 cursor-pointer group" htmlFor="age-checkbox">
+                    <div className="relative mt-0.5 flex-shrink-0">
+                      <input
+                        id="age-checkbox"
+                        type="checkbox"
+                        checked={ageConfirmed}
+                        onChange={(e) => setAgeConfirmed(e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center ${
+                        ageConfirmed
+                          ? "bg-indigo-500 border-indigo-500"
+                          : "bg-transparent border-slate-300 group-hover:border-slate-400"
+                      }`}>
+                        {ageConfirmed && (
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-slate-500 text-sm leading-relaxed">
+                      I confirm I am <strong className="text-slate-700">18 years or older</strong>.{" "}
+                      <span className="text-slate-400 text-xs">(Required under India&rsquo;s DPDP Act 2023 §9)</span>
+                    </span>
+                  </label>
+
+                  {/* Privacy Notice — DPDP §9 / §11 */}
+                  <div className="p-4 bg-slate-50/50 border border-slate-200 rounded-xl">
+                    <div className="flex gap-2.5">
+                      <svg className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                      </svg>
+                      <div>
+                        <p className="text-slate-700 text-xs font-semibold mb-1">Privacy Notice — DPDP Act 2023 Compliant</p>
+                        <p className="text-slate-500 text-xs leading-relaxed">
+                          Your voice recording is collected <strong className="text-slate-600">solely</strong> for pronunciation scoring.
+                          It is processed in-memory on our server and <strong className="text-slate-600">never written to any disk, database, or storage</strong>.
+                          The audio buffer is explicitly discarded immediately after transcription completes.{" "}
+                          Audio is transmitted to <strong className="text-slate-600">Deepgram Inc.</strong> (USA) for speech-to-text;
+                          flagged word text (no audio) is sent to <strong className="text-slate-600">Nvidia Corporation</strong> (USA)
+                          for AI coaching tips. Both are cross-border transfers under DPDP §16.
+                          No audio, transcripts, or scores are retained after your session ends.
+                        </p>
+                        <p className="text-slate-400 text-xs mt-1.5">
+                          For grievances, contact:{" "}
+                          <a href="mailto:privacy@pronounceai.app" className="underline hover:text-slate-600 transition-colors">
+                            privacy@pronounceai.app
+                          </a>
+                        </p>
+                      </div>
                     </div>
                   </div>
+
                 </div>
 
                 {/* Submit button */}
                 <button
                   id="analyze-button"
                   onClick={handleSubmit}
-                  disabled={appState !== "ready" || !consentChecked}
+                  disabled={appState !== "ready" || !consentChecked || !ageConfirmed}
                   className="w-full btn-primary py-4 rounded-xl text-base font-semibold relative z-10"
                 >
-                  {appState === "ready" && consentChecked
+                  {appState === "ready" && consentChecked && ageConfirmed
                     ? "Analyze My Pronunciation →"
+                    : appState !== "ready"
+                    ? "Select or record audio first"
                     : !consentChecked
                     ? "Please accept consent to continue"
-                    : "Select or record audio first"}
+                    : "Please confirm your age to continue"}
                 </button>
               </div>
             )}

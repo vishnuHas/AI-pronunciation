@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+// DPDP §16 Note: next/font/google fetches font files from fonts.googleapis.com (Google LLC, USA)
+// at build time and self-hosts them in the Next.js output bundle — no runtime cross-border request.
+// This is compliant: Next.js downloads and self-hosts fonts; no browser→Google network call at runtime.
 import { Inter } from "next/font/google";
 import "./globals.css";
 
