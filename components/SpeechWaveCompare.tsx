@@ -35,9 +35,16 @@ export function SpeechWaveCompare({ audioFile, words, textToSpeak }: SpeechWaveC
         const arrayBuffer = await audioFile.arrayBuffer();
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
         const audioCtx = new AudioContextClass();
-        const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
+        let decodedData;
+        try {
+          decodedData = await audioCtx.decodeAudioData(arrayBuffer);
+        } finally {
+          try {
+            audioCtx.close().catch(() => {});
+          } catch (_) {}
+        }
         
-        if (!active) return;
+        if (!active || !decodedData) return;
         setDuration(decodedData.duration);
         
         const channelData = decodedData.getChannelData(0);

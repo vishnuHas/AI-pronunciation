@@ -85,7 +85,11 @@ export function WordTooltip({ word, children, audioUrl }: WordTooltipProps) {
       
       source.onended = () => {
         setUserAudioState("idle");
-        try { ctx.close(); } catch (_) {}
+        try {
+          if (ctx.state !== "closed") {
+            ctx.close().catch(() => {});
+          }
+        } catch (_) {}
       };
 
       setUserAudioState("playing");
@@ -93,7 +97,11 @@ export function WordTooltip({ word, children, audioUrl }: WordTooltipProps) {
 
       stopRef.current = () => {
         try { source.stop(); } catch (_) {}
-        try { ctx.close(); } catch (_) {}
+        try {
+          if (ctx.state !== "closed") {
+            ctx.close().catch(() => {});
+          }
+        } catch (_) {}
       };
     } catch (e) {
       console.error("[WordTooltip] user audio playback failed:", e);
