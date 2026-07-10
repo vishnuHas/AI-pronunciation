@@ -112,7 +112,7 @@ export default function Home() {
             <span className="gradient-text">English Pronunciation</span>
           </h1>
           <p className="text-slate-600 text-lg max-w-lg mx-auto leading-relaxed">
-            Upload or record 30–45 seconds of English speech and get word-by-word
+            Upload 30–45 seconds of English speech and get word-by-word
             pronunciation feedback powered by AI.
           </p>
         </div>
@@ -148,50 +148,9 @@ export default function Home() {
               </div>
             )}
 
-            {/* Upload / Record form */}
+            {/* Upload form */}
             {(appState === "idle" || appState === "ready") && (
               <div className="space-y-6">
-                {/* Mode tabs */}
-                <div className="flex bg-slate-200/60 rounded-xl p-1">
-                  {(["upload", "record"] as InputMode[]).map((mode) => (
-                    <button
-                      key={mode}
-                      disabled={mode === "record"}
-                      onClick={() => {
-                        if (mode === "record") return;
-                        setInputMode(mode);
-                        setAudioFile(null);
-                        setAudioDuration(null);
-                        setAppState("idle");
-                        setInputError("");
-                      }}
-                      className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        mode === "record"
-                          ? "opacity-50 cursor-not-allowed text-slate-400"
-                          : inputMode === mode
-                          ? "bg-white text-slate-800 shadow-sm"
-                          : "text-slate-500 hover:text-slate-800"
-                      }`}
-                    >
-                      {mode === "upload" ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                          </svg>
-                          Upload File
-                        </span>
-                      ) : (
-                        <span className="flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                          </svg>
-                          Record Live (Locked)
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
                 {/* Input error */}
                 {inputError && (
                   <div className="flex items-start gap-3 p-4 bg-red-500/5 border border-red-500/10 rounded-xl animate-fade-in">
@@ -202,20 +161,12 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Upload or Record component */}
-                {inputMode === "upload" ? (
-                  <AudioUploader
-                    onFileSelected={handleFileSelected}
-                    onError={handleInputError}
-                    disabled={false}
-                  />
-                ) : (
-                  <AudioRecorder
-                    onRecordingComplete={handleRecordingComplete}
-                    onError={handleInputError}
-                    disabled={false}
-                  />
-                )}
+                {/* Upload component only */}
+                <AudioUploader
+                  onFileSelected={handleFileSelected}
+                  onError={handleInputError}
+                  disabled={false}
+                />
 
 
 
